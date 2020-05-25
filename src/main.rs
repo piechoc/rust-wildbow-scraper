@@ -296,6 +296,13 @@ fn download_iter(
     if &title == "1.01" {
         title = "Bonds 1.1".to_string();
     }
+    let subtitle = doc
+        .find(Descendant(
+            And(Name("div"), Class("entry-content")),
+            Name("h1"),
+        ))
+        .next()
+        .map(|n| n.text());
     println!("Downloaded {}", title);
     let mut arr = doc
         .find(Descendant(
@@ -307,7 +314,8 @@ fn download_iter(
     let to_sp = arr.len() - 1;
     arr.truncate(to_sp);
     let num = tup.1.len().clone().to_string();
-    let cont = arr.into_iter().fold("<?xml version='1.0' encoding='utf-8' ?><html xmlns='http://www.w3.org/1999/xhtml'><head><title>".to_string()+&title+"</title><meta http-equiv='Content-Type' content ='text/html'></meta><!-- ePub title: \"" +&title+ "\" -->\n</head><body><h1>"+&title+"</h1>\n", |acc, x|{
+    let subt = subtitle.map_or("".to_string(), |v| "<h2>".to_string()+&v+"</h2>");
+    let cont = arr.into_iter().fold("<?xml version='1.0' encoding='utf-8' ?><html xmlns='http://www.w3.org/1999/xhtml'><head><title>".to_string()+&title+"</title><meta http-equiv='Content-Type' content ='text/html'></meta><!-- ePub title: \"" +&title+ "\" -->\n</head><body><h1>"+&title+"</h1>"+&subt+"\n", |acc, x|{
         acc + "<p>"+ &x.inner_html().replace("&nbsp;","&#160;").replace("<br>","<br></br>").replace("& ", "&amp;").replace("<Walk or->","&lt;Walk or-&gt;").replace("<Walk!>","&lt;Walk!&gt;")+"</p>\n"
     })+"</body></html>";
     if FILE_USE {
